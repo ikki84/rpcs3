@@ -375,31 +375,6 @@ error_code sys_ppu_thread_start(ppu_thread& ppu, u32 thread_id)
 	else
 	{
 		thread_ctrl::notify(*thread);
-
-		// Dirty hack for sound: confirm the creation of _mxr000 event queue
-		if (thread->ppu_name.get() == "_cellsurMixerMain"sv)
-		{
-			lv2_obj::sleep(ppu);
-
-			while (!idm::select<lv2_obj, lv2_event_queue>([](u32, lv2_event_queue& eq)
-			{
-				//some games do not set event queue name, though key seems constant for them
-				return (eq.name == "_mxr000\0"_u64) || (eq.key == 0x8000cafe02460300);
-			}))
-			{
-				if (ppu.is_stopped())
-				{
-					return 0;
-				}
-
-				thread_ctrl::wait_for(50000);
-			}
-
-			if (ppu.test_stopped())
-			{
-				return 0;
-			}
-		}
 	}
 
 	return CELL_OK;
